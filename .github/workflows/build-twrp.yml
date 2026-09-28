@@ -22,22 +22,55 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt-get update
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11-dev libO erro no registo indica que a branch `twrp-11` não foi encontrada no repositório de manifesto da Omni (`fatal: couldn't find remote ref refs/heads/twrp-11`).
+
+Para compilar o TWRP baseado em Android 11 através do manifesto AOSP oficial, utilize a estrutura correspondente atualizada no ficheiro de fluxo de trabalho.
+
+### Ficheiro `.github/workflows/build-twrp.yml` Atualizado
+
+Substitua o conteúdo completo do ficheiro por esta versão:
+
+```yaml
+name: Build TWRP for SM-T575
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: false
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Set up Build Environment
+      run: |
+        sudo apt-get update
         sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig openjdk-11-jdk python2 python3
         mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        curl [https://storage.googleapis.com/git-repo-downloads/repo](https://storage.googleapis.com/git-repo-downloads/repo) > ~/bin/repo
         chmod a+x ~/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
     - name: Initialize TWRP Source Tree
       run: |
         mkdir twrp && cd twrp
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-11 --depth=1
+        repo init -u [https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git) -b twrp-11 --depth=1
         repo sync -c -j$(nproc) --no-clone-bundle --no-tags --current-branch
 
     - name: Clone Device Tree
       run: |
         cd twrp
-        git clone https://github.com/${{ github.repository }}.git device/samsung/gtactive3
+        git clone [https://github.com/$](https://github.com/$){{ github.repository }}.git device/samsung/gtactive3
 
     - name: Compile TWRP
       run: |
