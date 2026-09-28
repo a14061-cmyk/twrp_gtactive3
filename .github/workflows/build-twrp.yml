@@ -38,7 +38,6 @@ jobs:
       run: |
         cd twrp
         git clone https://github.com/${{ github.repository }}.git device/samsung/gtactive3
-        # Substitui a referência antiga ao vendor/omni pelo vendor/twrp no ficheiro de produto
         if [ -f device/samsung/gtactive3/twrp_gtactive3.mk ]; then
           sed -i 's|vendor/omni/config/common.mk|vendor/twrp/config/common.mk|g' device/samsung/gtactive3/twrp_gtactive3.mk
         fi
@@ -50,11 +49,21 @@ jobs:
         source build/envsetup.sh
         lunch twrp_gtactive3-eng
         mka recoveryimage -j$(nproc)
-        cd out/target/product/gtactive3/
-        tar -cvf twrp_SM-T575.tar recovery.img
+        
+        # Procura onde o recovery.img/boot.img foi gerado e empacota para Odin (.tar)
+        cd out/target/product/gtactive3
+        if [ -f recovery.img ]; then
+          tar -cvf twrp_SM-T575.tar recovery.img
+        elif [ -f boot.img ]; then
+          tar -cvf twrp_SM-T575.tar boot.img
+        else
+          echo "Nenhuma imagem encontrada em out/target/product/gtactive3/"
+          ls -la
+          exit 1
+        fi
 
     - name: Upload TWRP Tar to GitHub Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: TWRP_SM-T575_Odin
-        path: twrp/out/target/product/gtactive3/twrp_SM-T575.tar
+        path: twrp/out/target/product/gtactive3/*.tar
