@@ -50,15 +50,19 @@ jobs:
         lunch twrp_gtactive3-eng
         mka recoveryimage -j$(nproc)
         
+        # Localiza qualquer ficheiro .img criado no diretório de saída
         cd out/target/product/gtactive3
-        IMG_PATH=$(find . -maxdepth 2 -name "recovery.img" -o -name "boot.img" | head -n 1)
+        echo "=== Ficheiros gerados na pasta ==="
+        find . -name "*.img"
         
-        if [ -n "$IMG_PATH" ]; then
-          echo "Imagem encontrada em: $IMG_PATH"
-          cp "$IMG_PATH" ./recovery.img
+        IMG_FILE=$(find . -name "*.img" | head -n 1)
+        
+        if [ -n "$IMG_FILE" ]; then
+          echo "Imagem encontrada: $IMG_FILE"
+          cp "$IMG_FILE" ./recovery.img
           tar -cvf twrp_SM-T575.tar recovery.img
         else
-          echo "Erro: Imagem do recovery não encontrada."
+          echo "Erro: Nenhuma imagem .img encontrada!"
           exit 1
         fi
 
