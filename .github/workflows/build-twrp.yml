@@ -22,13 +22,15 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11-dev libO erro no registo indica que a branch `twrp-11` não foi encontrada no repositório de manifesto da Omni (`fatal: couldn't find remote ref refs/heads/twrp-11`).
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-A execução **#13** falhou no arranque porque foi despoletada por um *push* de código em vez de ser uma execução manual. Além disso, a execução anterior **#12** falhou aos 2m 42s por causa do erro de sincronização do repositório de manifesto (`platform_manifest_twrp_omni`).
 
-Para compilar o TWRP baseado em Android 11 através do manifesto AOSP oficial, utilize a estrutura correspondente atualizada no ficheiro de fluxo de trabalho.
+Para resolver o conflito entre as dependências da Omni e do TWRP de forma permanente, ajustamos o repositório de manifesto para o formato AOSP e definimos o ambiente para utilizar o ficheiro de configuração do dispositivo local.
 
-### Ficheiro `.github/workflows/build-twrp.yml` Atualizado
+---
 
-Substitua o conteúdo completo do ficheiro por esta versão:
+### Código Completo e Atualizado (`build-twrp.yml`)
+
+Substitua todo o conteúdo do ficheiro `.github/workflows/build-twrp.yml` por este bloco:
 
 ```yaml
 name: Build TWRP for SM-T575
