@@ -34,12 +34,14 @@ jobs:
         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-11 --depth=1
         repo sync -c -j$(nproc) --no-clone-bundle --no-tags --current-branch
 
-    - name: Clone Device Tree and Fix Dependencies
+    - name: Clone Device Tree and Patch Omni Dependency
       run: |
         cd twrp
         git clone https://github.com/${{ github.repository }}.git device/samsung/gtactive3
-        # Cria a pasta vendor/omni necessária pelo ficheiro twrp_gtactive3.mk
-        git clone https://github.com/minimal-manifest-twrp/platform_vendor_omni.git -b twrp-11 vendor/omni || git clone https://github.com/minimal-manifest-twrp/platform_vendor_omni.git vendor/omni
+        # Substitui a referência antiga ao vendor/omni pelo vendor/twrp no ficheiro de produto
+        if [ -f device/samsung/gtactive3/twrp_gtactive3.mk ]; then
+          sed -i 's|vendor/omni/config/common.mk|vendor/twrp/config/common.mk|g' device/samsung/gtactive3/twrp_gtactive3.mk
+        fi
 
     - name: Compile TWRP
       run: |
