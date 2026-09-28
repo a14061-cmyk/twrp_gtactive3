@@ -22,29 +22,68 @@ jobs:
     - name: Set up Build Environment
       run: |
         sudo apt-get update
+        sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11Agora identificámos o problema exato! 
+
+O erro na linha 12 indica que a árvore do dispositivo (`twrp_gtactive3.mk`) está a tentar incluir o ficheiro `vendor/omni/config/common.mk`, mas esse ficheiro não existe porque sincronizámos o manifesto **AOSP** (`platform_manifest_twrp_aosp`) em vez do **Omni**.
+
+Além disso, a linha 26 mostra que o alvo correto para o `lunch` é mesmo **`twrp_gtactive3-eng`**.
+
+---
+
+### Solução Definitiva
+
+Temos de alterar o manifesto para o repositório correto (`platform_manifest_twrp_omni.git`) com a branch `twrp-11` e definir o `lunch` direto para `twrp_gtactive3-eng`.
+
+Substitua todo o conteúdo do ficheiro `.github/workflows/build-twrp.yml` por este código:
+
+```yaml
+name: Build TWRP for SM-T575
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: true
+        android: false
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Set up Build Environment
+      run: |
+        sudo apt-get update
         sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5-dev lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig openjdk-11-jdk python2 python3
         mkdir -p ~/bin
-        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+        curl [https://storage.googleapis.com/git-repo-downloads/repo](https://storage.googleapis.com/git-repo-downloads/repo) > ~/bin/repo
         chmod a+x ~/bin/repo
         echo "$HOME/bin" >> $GITHUB_PATH
 
     - name: Initialize TWRP Source Tree
       run: |
         mkdir twrp && cd twrp
-        repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-11 --depth=1
+        repo init -u [https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git](https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git) -b twrp-11 --depth=1
         repo sync -c -j$(nproc) --no-clone-bundle --no-tags --current-branch
 
     - name: Clone Device Tree
       run: |
         cd twrp
-        git clone https://github.com/${{ github.repository }}.git device/samsung/gtactive3
+        git clone [https://github.com/$](https://github.com/$){{ github.repository }}.git device/samsung/gtactive3
 
     - name: Compile TWRP
       run: |
         cd twrp
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
-        lunch twrp_gtactive3-eng || lunch omni_gtactive3-eng
+        lunch twrp_gtactive3-eng
         mka recoveryimage -j$(nproc)
         cd out/target/product/gtactive3/
         tar -cvf twrp_SM-T575.tar recovery.img
