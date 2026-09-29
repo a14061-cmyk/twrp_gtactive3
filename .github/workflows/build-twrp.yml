@@ -1,6 +1,13 @@
 name: Build TWRP for SM-T575
 
 on:
+  push:
+    branches: [ "main", "master" ]
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [ "main", "master" ]
   workflow_dispatch:
 
 jobs:
@@ -34,13 +41,18 @@ jobs:
         repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-11 --depth=1
         repo sync -c -j$(nproc) --no-clone-bundle --no-tags --current-branch
 
-    - name: Clone Device Tree and Patch Omni Dependency
+    - name: Clone Device Tree and Download Kernel
       run: |
         cd twrp
         git clone https://github.com/${{ github.repository }}.git device/samsung/gtactive3
+        
+        # Patch da dependência do omni
         if [ -f device/samsung/gtactive3/twrp_gtactive3.mk ]; then
           sed -i 's|vendor/omni/config/common.mk|vendor/twrp/config/common.mk|g' device/samsung/gtactive3/twrp_gtactive3.mk
         fi
+
+        # Descarrega o kernel de 31MB durante o build
+        curl -L -o device/samsung/gtactive3/kernel "https://files.catbox.moe/qtso3p"
 
     - name: Compile TWRP
       run: |
@@ -50,12 +62,11 @@ jobs:
         lunch twrp_gtactive3-eng
         mka recoveryimage -j$(nproc)
 
-        # Procura recursivamente por qualquer .img na diretoria de saída
+        # Empacotamento
         cd out/target/product/gtactive3
         IMG_FILE=$(find . -type f -name "*.img" | head -n 1)
 
         if [ -z "$IMG_FILE" ]; then
-          # Se não encontrar .img, procura ficheiros binários na pasta recovery/
           IMG_FILE=$(find recovery/ -type f -name "*" | head -n 1)
         fi
 
@@ -64,8 +75,6 @@ jobs:
           cp "$IMG_FILE" ./recovery.img
           tar -cvf twrp_SM-T575.tar recovery.img
         else
-          echo "Conteúdo da pasta recovery:"
-          ls -la recovery/
           exit 1
         fi
 
