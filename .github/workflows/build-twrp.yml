@@ -54,6 +54,12 @@ jobs:
         # Descarrega o kernel de 31MB e garante permissões de leitura
         curl -L -o device/samsung/gtactive3/kernel "https://files.catbox.moe/qtso3p"
         chmod 644 device/samsung/gtactive3/kernel
+
+        # Garante a cópia dtb.img para o Ninja encontrar durante a compilação
+        if [ -f device/samsung/gtactive3/dtb ]; then
+          cp device/samsung/gtactive3/dtb device/samsung/gtactive3/dtb.img
+        fi
+
         ls -la device/samsung/gtactive3/
 
     - name: Compile TWRP
