@@ -42,9 +42,10 @@ BOARD_TAGS_OFFSET := 0x00000100
 # Kernel Config
 TARGET_PREBUILT_KERNEL := $(DEVICE_PATH)/kernel
 
-# DTB Config
-BOARD_PREBUILT_DTBIMAGE := $(DEVICE_PATH)/dtb.img
+# DTB Config (Força o AOSP a copiar o ficheiro pré-compilado para a pasta de saída)
 BOARD_INCLUDE_DTB_IN_BOOTIMG := true
+BOARD_PREBUILT_DTBIMAGE := $(DEVICE_PATH)/dtb
+TARGET_PREBUILT_DTB := $(DEVICE_PATH)/dtb
 
 BOARD_MKBOOTIMG_ARGS := --kernel_offset $(BOARD_KERNEL_OFFSET)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
