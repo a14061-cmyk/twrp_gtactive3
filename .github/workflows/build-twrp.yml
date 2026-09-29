@@ -51,11 +51,11 @@ jobs:
           sed -i 's|vendor/omni/config/common.mk|vendor/twrp/config/common.mk|g' device/samsung/gtactive3/twrp_gtactive3.mk
         fi
 
-        # Descarrega o kernel de 31MB
+        # Descarrega o kernel de 31MB e garante permissões
         curl -L -o device/samsung/gtactive3/kernel "https://files.catbox.moe/qtso3p"
         chmod 644 device/samsung/gtactive3/kernel
 
-        # Duplica o DTB para cobrir todas as variantes exigidas pelo Ninja
+        # Duplica o DTB para cobrir as variantes exigidas pelo Ninja
         if [ -f device/samsung/gtactive3/dtb ]; then
           cp device/samsung/gtactive3/dtb device/samsung/gtactive3/dtb.img
           mkdir -p out/target/product/gtactive3/
@@ -73,20 +73,22 @@ jobs:
         lunch twrp_gtactive3-eng
         mka recoveryimage -j$(nproc)
 
-        # Empacotamento
+        # Empacotamento para Odin (.tar)
         cd out/target/product/gtactive3
-        IMG_FILE=$(find . -type f -name "*.img" | head -n 1)
-
-        if [ -z "$IMG_FILE" ]; then
-          IMG_FILE=$(find recovery/ -type f -name "*" | head -n 1)
-        fi
-
-        if [ -n "$IMG_FILE" ]; then
-          echo "Ficheiro encontrado em: $IMG_FILE"
-          cp "$IMG_FILE" ./recovery.img
+        
+        if [ -f "recovery.img" ]; then
+          echo "recovery.img encontrado na raiz de saída. Empacotando..."
           tar -cvf twrp_SM-T575.tar recovery.img
         else
-          exit 1
+          echo "recovery.img não encontrado na raiz, a procurar nas subpastas..."
+          IMG_FILE=$(find . -name "recovery.img" | head -n 1)
+          if [ -n "$IMG_FILE" ]; then
+            cp "$IMG_FILE" ./recovery.img
+            tar -cvf twrp_SM-T575.tar recovery.img
+          else
+            echo "Erro: recovery.img não foi gerado."
+            exit 1
+          fi
         fi
 
     - name: Upload TWRP Tar to GitHub Artifacts
