@@ -51,8 +51,10 @@ jobs:
           sed -i 's|vendor/omni/config/common.mk|vendor/twrp/config/common.mk|g' device/samsung/gtactive3/twrp_gtactive3.mk
         fi
 
-        # Descarrega o kernel de 31MB durante o build
+        # Descarrega o kernel de 31MB e garante permissões de leitura
         curl -L -o device/samsung/gtactive3/kernel "https://files.catbox.moe/qtso3p"
+        chmod 644 device/samsung/gtactive3/kernel
+        ls -la device/samsung/gtactive3/
 
     - name: Compile TWRP
       run: |
